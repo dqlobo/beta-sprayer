@@ -7,7 +7,7 @@ export const Main = () => {
     <Card>
       <h2 className="text-2xl font-bold">Step 1: Photograph the route</h2>
       <div className="text-med text-gray-500 font-light rounded-md">
-        Click or drag to upload your photos:
+        Click or drag to upload your photos!!
       </div>
       <div className="border-4 border-dashed border-gray-200 rounded-md flex justify-center items-center p-4 h-48">
         <svg
