@@ -1,72 +1,51 @@
 "use client"
+import axios from "axios"
 import { Button } from "flowbite-react"
 import Image from "next/image"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import Dropzone from "./dropzone"
 
-const thumbsContainer = {
-  display: "flex",
-  flexDirection: "row",
-  flexWrap: "wrap",
-  marginTop: 16,
-}
-
-const thumb = {
-  display: "inline-flex",
-  borderRadius: 2,
-  border: "1px solid #eaeaea",
-  marginBottom: 8,
-  marginRight: 8,
-  width: 100,
-  height: 100,
-  padding: 4,
-  boxSizing: "border-box",
-}
-
-const thumbInner = {
-  display: "flex",
-  minWidth: 0,
-  overflow: "hidden",
-}
-
-const img = {
-  display: "block",
-  width: "auto",
-  height: "100%",
-}
-
 export default function Upload() {
-  const [image, setImage] = useState<string>()
+  const [image, setImage] = useState<{ file: File; preview: string }>()
 
   useEffect(() => {
     // Make sure to revoke the data uris to avoid memory leaks, will run on unmount
     return () => {
-      if (!image) return
-      URL.revokeObjectURL(image!)
+      if (!image?.preview) return
+      URL.revokeObjectURL(image.preview)
     }
   }, [])
+  const runRoboflow = useCallback(async () => {
+    await axios.post(
+      `/api/roboflow/upload_image?filename=${image!.file.name}`,
+      image!.file
+    )
+  }, [image])
   return (
     <>
       <h2 className="text-2xl font-bold">Upload Image</h2>
       {!image && (
         <Dropzone
-          onImageReceived={(img) => setImage(URL.createObjectURL(img))}
+          onImageReceived={(img) => {
+            console.log(img)
+            setImage({ file: img, preview: URL.createObjectURL(img) })
+          }}
         />
       )}
       {image && (
         <>
           <Image
-            src={image}
-            style={img}
+            src={image.preview}
             alt="User uploaded image preview"
-            // Revoke data uri after image is loaded
+            className="max-h-80"
+            height={20}
             width={200}
-            height={200}
+            // style={{ objectFit: "contain" }}
             onLoad={() => {
-              URL.revokeObjectURL(image)
+              URL.revokeObjectURL(image.preview)
             }}
           />
-          <Button>Use this image</Button>
+          <Button onClick={runRoboflow}>Use this image</Button>
         </>
       )}
     </>
