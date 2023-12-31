@@ -1,5 +1,5 @@
 import Image from "next/image"
-import { Uploader } from "./uploader"
+import { Uploader } from "./api-test"
 
 export default function Home() {
   return (

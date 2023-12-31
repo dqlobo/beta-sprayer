@@ -1,6 +1,8 @@
+import { Card } from "flowbite-react"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
+import { Navigation } from "./navigation"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -16,7 +18,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <Navigation />
+      <div className="flex min-h-screen items-center justify-center">
+        <div className={`w-2/4 ${inter.className}`}>
+          <Card>{children}</Card>
+        </div>
+      </div>
     </html>
   )
 }
