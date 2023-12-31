@@ -16,10 +16,11 @@ export default function Upload() {
     }
   }, [])
   const runRoboflow = useCallback(async () => {
-    await axios.post(
+    const r = await axios.post(
       `/api/roboflow/upload_image?filename=${image!.file.name}`,
       image!.file
     )
+    console.log(r.data)
   }, [image])
   return (
     <>
