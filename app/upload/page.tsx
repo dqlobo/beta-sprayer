@@ -1,5 +1,5 @@
 "use client"
-import { Uploader } from "./uploader"
+import Uploader from "./uploader"
 
 export default function Upload() {
   return (

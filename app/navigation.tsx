@@ -1,6 +1,6 @@
 import { Navbar, NavbarBrand, NavbarCollapse, NavbarLink } from "flowbite-react"
 
-export const Navigation = () => {
+export default function Navigation() {
   return (
     <Navbar>
       <NavbarBrand href="/">
