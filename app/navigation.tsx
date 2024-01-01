@@ -14,6 +14,7 @@ export default function Navigation() {
         </span>
       </NavbarBrand>
       <NavbarCollapse>
+        <NavbarLink href="#">Home</NavbarLink>
         <NavbarLink href="#">About</NavbarLink>
       </NavbarCollapse>
     </Navbar>
