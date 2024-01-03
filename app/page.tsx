@@ -1,14 +1,7 @@
 "use client"
 
 import { PlusCircleOutlined } from "@ant-design/icons"
-import {
-  Button,
-  Pagination,
-  Table,
-  TableBody,
-  TableCell,
-  TableRow,
-} from "flowbite-react"
+import { Button, Pagination } from "antd"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 export default function Home() {
@@ -17,13 +10,10 @@ export default function Home() {
     <>
       <h2 className="text-2xl font-bold">Welcome to BetaSprayer!</h2>{" "}
       <Link href="/new">
-        <Button size="sm">
-          <PlusCircleOutlined className="mr-2" />
-          <span>Add route</span>
-        </Button>
+        <Button icon={<PlusCircleOutlined />}>Add route</Button>
       </Link>
       <h3 className="text-md font-light text-gray-400">Recently added</h3>
-      <Table striped hoverable>
+      {/* <Table striped hoverable>
         <TableBody>
           <TableRow
             className="cursor-pointerf"
@@ -42,15 +32,9 @@ export default function Home() {
             <TableCell>V4</TableCell>
           </TableRow>
         </TableBody>
-      </Table>{" "}
+      </Table>{" "} */}
       <div>
-        <Pagination
-          currentPage={15}
-          totalPages={30}
-          onPageChange={() => {}}
-          className="text-sm flex flex-col justify-center items-center"
-          layout="pagination"
-        />
+        <Pagination current={0} />
       </div>
     </>
   )

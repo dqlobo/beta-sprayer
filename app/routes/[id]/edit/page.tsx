@@ -8,18 +8,11 @@ import {
   PlusCircleFilled,
 } from "@ant-design/icons"
 import { Route } from "@prisma/client"
-import {
-  Badge,
-  Breadcrumb,
-  BreadcrumbItem,
-  Button,
-  Label,
-  Spinner,
-  Textarea,
-} from "flowbite-react"
+import { Button, Form, Spin, Tag } from "antd"
+import TextArea from "antd/es/input/TextArea"
 import { useParams } from "next/navigation"
 import { useEffect, useRef, useState } from "react"
-import ImageMapper, { MapAreas } from "react-img-mapper"
+import { MapAreas } from "react-img-mapper"
 import { TagsInput } from "react-tag-input-component"
 import { fetchRoute } from "./server"
 import { buildAnnotationsMap } from "./utils"
@@ -50,20 +43,41 @@ export default function EditRoute() {
   if (!route) {
     return (
       <div className="h-40 flex items-center justify-center">
-        <Spinner size="xl" />
+        <Spin />
       </div>
     )
   }
-
+  console.log(annotationsMap)
   return (
     <div>
-      <Breadcrumb>
+      {/* <Breadcrumb>
         <BreadcrumbItem href="/">Home</BreadcrumbItem>
         <BreadcrumbItem>Edit route</BreadcrumbItem>
-      </Breadcrumb>
+      </Breadcrumb> */}
 
       <div className="flex flex-row gap-4 mt-4">
-        <ImageMapper
+        <div style={{ position: "relative" }}>
+          <img src={route.imageUrl} style={{ maxWidth: 200 }} />
+          <svg
+            style={{
+              position: "absolute",
+              height: "100%",
+              width: "100%",
+              left: 0,
+            }}
+          >
+            {annotationsMap.map((a) => (
+              <rect
+                key={a.id}
+                x={(a.coords[0] * 200) / 3024}
+                y={(a.coords[1] * 200) / 3024}
+                width={((a.coords[2] - a.coords[0]) * 200) / 3024}
+                height={((a.coords[3] - a.coords[1]) * 200) / 3024}
+              />
+            ))}
+          </svg>
+        </div>
+        {/* <ImageMapper
           containerRef={containerRef as { current: HTMLDivElement }}
           // Note - ImageMapper doesn't work with HMR
           src={route.imageUrl}
@@ -77,7 +91,7 @@ export default function EditRoute() {
             name: "holds",
             areas: annotationsMap,
           }}
-        />
+        /> */}
         <div className="flex-grow">
           {selectedHolds.length > 0 && (
             <div className="flex justify-between mb-2 min-h-4">
@@ -90,35 +104,42 @@ export default function EditRoute() {
               </div>
             </div>
           )}
-          <h2 className="text-2xl font-bold">{route?.title}</h2>
+
+          <div className="text-2xl font-bold mb-2">{route?.title}</div>
           {selectedHolds.length === 0 && (
             <div>Select a hold to annotate the starting position</div>
           )}
           {selectedHolds.length > 0 && (
             <div className="flex gap-2 flex-col">
-              <div className="flex items-center gap-2 my-2">
+              <div className="flex items-center gap-2">
                 <span className="font-bold text-gray-400 text-xs uppercase">
                   Now describing:
                 </span>
-                <Badge color="gray">Move 1 of 1</Badge>
+                <Tag color="gray">Move 1 of 1</Tag>
               </div>
 
-              {/* <hr className="mb-2" /> */}
               <div className="text-xs flex items-center gap-1">
                 <CheckSquareOutlined />
                 {selectedHolds.length} hold
                 {selectedHolds.length != 1 ? "s" : ""} selected
               </div>
 
-              <div className="flex-grow">
-                <Label htmlFor="notes">Notes</Label>
-                <Textarea
-                  value=""
-                  placeholder="Add a note about how to get into this position..."
-                ></Textarea>
-                <TagsInput value={[]} onChange={() => {}} />
-              </div>
-              <div className="cursor-pointer my-1">
+              <Form layout="vertical" className="mt-2">
+                <Form.Item label="Description">
+                  <TextArea
+                    value=""
+                    placeholder="Add a note about how to get into this position..."
+                  />
+                </Form.Item>
+                <Form.Item label="Tags">
+                  <TagsInput
+                    separators={[","]}
+                    value={[]}
+                    onChange={() => {}}
+                  />
+                </Form.Item>
+              </Form>
+              <div className="cursor-pointer">
                 <div className="flex gap-4 items-center justify-between">
                   <div className="font-light text-sm flex items-center gap-1 text-red-500">
                     <DeleteFilled /> <div>Delete this move</div>
@@ -132,8 +153,8 @@ export default function EditRoute() {
           )}
         </div>
       </div>
-      <div className="mt-8 flex justify-end">
-        <Button>Save route</Button>
+      <div className="text-right mt-4">
+        <Button type="primary">Save route</Button>
       </div>
     </div>
   )

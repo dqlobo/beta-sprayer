@@ -1,4 +1,4 @@
-import { Card } from "flowbite-react"
+import { Card } from "antd"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
