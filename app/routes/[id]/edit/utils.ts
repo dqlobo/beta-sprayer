@@ -12,8 +12,6 @@ export function buildAnnotationsMap(rawAnnotations: any): MapAreas[] {
   if (!rawAnnotations) return []
 
   const annotations = rawAnnotations as RouteAnnotation
-  const preFillColor = "rgba(200,200,100,0.3)"
-  const fillColor = "rgba(200,200,0,0.3)"
   return annotations.predictions.map((p, i) => ({
     id: i.toString(),
     shape: "rect",
@@ -23,7 +21,8 @@ export function buildAnnotationsMap(rawAnnotations: any): MapAreas[] {
       p.x + p.width / 2,
       p.y + p.height / 2,
     ],
-    fillColor,
-    preFillColor,
+    name: "hold",
+    fillColor: "rgba(200,200,0,0.3)",
+    strokeColor: "#fff000",
   }))
 }
