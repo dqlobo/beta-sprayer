@@ -10,7 +10,7 @@ export interface RouteHold {
   confidence: number
 }
 
-export interface RouteStep {
+export interface RouteMove {
   handHoldIds: number[]
   footHoldIds: number[]
   description: string

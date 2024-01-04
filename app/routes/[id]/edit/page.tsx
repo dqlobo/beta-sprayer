@@ -16,14 +16,14 @@ import percentile from "percentile"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import RouteAnnotationSVG from "../_components/routeAnnotationSVG"
 import { footHoldColor, handHoldColor } from "./constants"
-import { fetchRoute } from "./server"
-import { RouteHold, RouteHoldType, RouteStep } from "./types"
+import { fetchRoute, saveMoves } from "./server"
+import { RouteHold, RouteHoldType, RouteMove } from "./types"
 import { buildHoldsDisplayAttributes, updateArrayWithPredicate } from "./utils"
 
 const ROUTE_DISPLAY_WIDTH = 300
 const MAX_HAND_FOOT_HOLDS = 2
 
-const BLANK_STEP: RouteStep = {
+const BLANK_STEP: RouteMove = {
   handHoldIds: [],
   footHoldIds: [],
   description: "",
@@ -34,61 +34,52 @@ const FORM_HEADER_STYLE = "font-bold text-gray-400 text-xs uppercase mr-2 mb-1"
 export default function EditRoute() {
   const [route, setRoute] = useState<Route>()
   const [holdsList, setHoldsList] = useState<RouteHold[]>([])
-  const [steps, setSteps] = useState<RouteStep[]>([BLANK_STEP])
-  const [currentStepIndex, setCurrentStepIndex] = useState<number>(0)
-  const currentStep = useMemo(
-    () => steps[currentStepIndex],
-    [steps, currentStepIndex]
+  const [moves, setMoves] = useState<RouteMove[]>([BLANK_STEP])
+  const [currentMoveIndex, setCurrentMoveIndex] = useState<number>(0)
+  const [loadingSave, setLoadingSave] = useState(false)
+  const currentMove = useMemo(
+    () => moves[currentMoveIndex],
+    [moves, currentMoveIndex]
   )
   const selectedHoldCount =
-    currentStep.handHoldIds.length + currentStep.footHoldIds.length
+    currentMove.handHoldIds.length + currentMove.footHoldIds.length
 
   const { id: routeId } = useParams()
 
   useEffect(() => {
     fetchRoute(parseInt(routeId as string)).then((r) => {
+      if (!r) return
+
       setRoute(r!)
       setHoldsList(
         buildHoldsDisplayAttributes(r?.annotations, ROUTE_DISPLAY_WIDTH)
       )
+      setMoves((r!.moves || [BLANK_STEP]) as unknown as RouteMove[])
     })
   }, [routeId])
 
   const holdTypeById = useCallback(
     (id: number): RouteHoldType => {
-      if (currentStep.handHoldIds.includes(id)) return "hand"
-      if (currentStep.footHoldIds.includes(id)) return "foot"
+      if (currentMove.handHoldIds.includes(id)) return "hand"
+      if (currentMove.footHoldIds.includes(id)) return "foot"
 
       return null
     },
-    [currentStep]
+    [currentMove]
   )
 
-  function updateHolds(
-    predicate: (hold: RouteHold) => boolean,
-    changes: Partial<RouteHold>
-  ) {
-    const newHoldsList = updateArrayWithPredicate<RouteHold>(
-      holdsList,
-      predicate,
-      changes
-    )
-    setHoldsList(newHoldsList)
-    setSteps(
-      updateArrayWithPredicate<RouteStep>(
-        steps,
-        (s, i) => i === currentStepIndex,
-        {
-          handHoldIds: newHoldsList
-            .filter((h) => h.holdType === "hand")
-            .map((h) => h.id),
-          footHoldIds: newHoldsList
-            .filter((h) => h.holdType === "foot")
-            .map((h) => h.id),
-        }
+  const updateCurrentMove = useCallback(
+    (changes: Partial<RouteMove>) => {
+      setMoves(
+        updateArrayWithPredicate(
+          moves,
+          (_, i) => i === currentMoveIndex,
+          changes
+        )
       )
-    )
-  }
+    },
+    [moves, currentMoveIndex]
+  )
 
   function onClickHold(id: number) {
     const currentHoldType = holdTypeById(id)
@@ -98,29 +89,29 @@ export default function EditRoute() {
 
     if (
       selectionSequence[nextIndex] === "hand" &&
-      currentStep.handHoldIds.length >= MAX_HAND_FOOT_HOLDS
+      currentMove.handHoldIds.length >= MAX_HAND_FOOT_HOLDS
     ) {
       nextIndex += 1
     }
 
     if (
       selectionSequence[nextIndex] === "foot" &&
-      currentStep.footHoldIds.length >= MAX_HAND_FOOT_HOLDS
+      currentMove.footHoldIds.length >= MAX_HAND_FOOT_HOLDS
     ) {
       nextIndex += 1
     }
     // TODO figure out better data structure for this...
-    setSteps(
-      steps.map((s, i) => {
-        if (i === currentStepIndex) {
+    setMoves(
+      moves.map((s, i) => {
+        if (i === currentMoveIndex) {
           const handHoldIds =
             selectionSequence[nextIndex] === "hand"
-              ? [...currentStep.handHoldIds, id]
-              : currentStep.handHoldIds.filter((holdId) => holdId !== id)
+              ? [...currentMove.handHoldIds, id]
+              : currentMove.handHoldIds.filter((holdId) => holdId !== id)
           const footHoldIds =
             selectionSequence[nextIndex] === "foot"
-              ? [...currentStep.footHoldIds, id]
-              : currentStep.footHoldIds.filter((holdId) => holdId !== id)
+              ? [...currentMove.footHoldIds, id]
+              : currentMove.footHoldIds.filter((holdId) => holdId !== id)
           return { ...s, handHoldIds, footHoldIds }
         }
         return s
@@ -160,7 +151,7 @@ export default function EditRoute() {
                 y={hold.y}
                 width={hold.width}
                 height={hold.height}
-                onClick={() => onClickHold(hold.id)}
+                onClick={() => !loadingSave && onClickHold(hold.id)}
               />
             ))}
           </svg>
@@ -182,23 +173,23 @@ export default function EditRoute() {
           <div className="text-2xl font-bold mb-2">{route?.title}</div>
           <div className="flex justify-between mb-2 min-h-4">
             <div
-              onClick={() => setCurrentStepIndex(currentStepIndex - 1)}
+              onClick={() => setCurrentMoveIndex(currentMoveIndex - 1)}
               className={classNames("flex items-center gap-2", {
-                "cursor-pointer text-blue-500": currentStepIndex > 0,
+                "cursor-pointer text-blue-500": currentMoveIndex > 0,
                 "cursor-not-allowed text-gray-400 pointer-events-none":
-                  currentStepIndex === 0,
+                  currentMoveIndex === 0,
               })}
             >
               <CaretLeftFilled /> <div>Previous move</div>
             </div>
 
             <div
-              onClick={() => setCurrentStepIndex(currentStepIndex + 1)}
+              onClick={() => setCurrentMoveIndex(currentMoveIndex + 1)}
               className={classNames("flex items-center gap-2", {
                 "cursor-pointer text-blue-500":
-                  currentStepIndex < steps.length - 1,
+                  currentMoveIndex < moves.length - 1,
                 "cursor-not-allowed text-gray-400 pointer-events-none":
-                  currentStepIndex === steps.length - 1,
+                  currentMoveIndex === moves.length - 1,
               })}
             >
               <div>Next move</div>
@@ -209,7 +200,7 @@ export default function EditRoute() {
             <div>
               <div className={FORM_HEADER_STYLE}>Now labeling</div>
               <div className="text-lg font-semibold">
-                Move {currentStepIndex + 1} of {steps.length}
+                Move {currentMoveIndex + 1} of {moves.length}
               </div>
             </div>
             <div>
@@ -220,32 +211,24 @@ export default function EditRoute() {
                   Select up to 4 holds...
                 </span>
               )}
-              {currentStep.handHoldIds.length > 0 && (
+              {currentMove.handHoldIds.length > 0 && (
                 <Tag
                   color={handHoldColor}
-                  closable
-                  onClose={() =>
-                    updateHolds((h) => h.holdType === "hand", {
-                      holdType: null,
-                    })
-                  }
+                  closable={!loadingSave}
+                  onClose={() => updateCurrentMove({ handHoldIds: [] })}
                 >
-                  {currentStep.handHoldIds.length} hand
-                  {currentStep.handHoldIds.length != 1 ? "s" : ""}
+                  {currentMove.handHoldIds.length} hand
+                  {currentMove.handHoldIds.length != 1 ? "s" : ""}
                 </Tag>
               )}
-              {currentStep.footHoldIds.length > 0 && (
+              {currentMove.footHoldIds.length > 0 && (
                 <Tag
                   color={footHoldColor}
-                  closable
-                  onClose={() =>
-                    updateHolds((h) => h.holdType === "foot", {
-                      holdType: null,
-                    })
-                  }
+                  closable={!loadingSave}
+                  onClose={() => updateCurrentMove({ footHoldIds: [] })}
                 >
-                  {currentStep.footHoldIds.length}{" "}
-                  {currentStep.footHoldIds.length > 1 ? "feet" : "foot"}
+                  {currentMove.footHoldIds.length}{" "}
+                  {currentMove.footHoldIds.length > 1 ? "feet" : "foot"}
                 </Tag>
               )}
               {selectedHoldCount === 4 && (
@@ -258,16 +241,11 @@ export default function EditRoute() {
               <div className={FORM_HEADER_STYLE}>Description</div>
               <Input.TextArea
                 autoSize={{ minRows: 3, maxRows: 7 }}
-                value={currentStep.description}
+                value={currentMove.description}
                 onChange={(e) =>
-                  setSteps(
-                    updateArrayWithPredicate(
-                      steps,
-                      (s, i) => i === currentStepIndex,
-                      { description: e.target.value }
-                    )
-                  )
+                  updateCurrentMove({ description: e.target.value })
                 }
+                disabled={loadingSave}
                 placeholder="Add a note about how to get into this position..."
               />
             </div>
@@ -277,14 +255,14 @@ export default function EditRoute() {
                   danger
                   icon={<DeleteOutlined />}
                   type="dashed"
-                  disabled={steps.length <= 1}
+                  disabled={moves.length <= 1 || loadingSave}
                   onClick={() => {
-                    setSteps([
-                      ...steps.slice(0, currentStepIndex),
-                      ...steps.slice(currentStepIndex + 1),
+                    setMoves([
+                      ...moves.slice(0, currentMoveIndex),
+                      ...moves.slice(currentMoveIndex + 1),
                     ])
-                    setCurrentStepIndex(
-                      Math.min(steps.length - 2, currentStepIndex)
+                    setCurrentMoveIndex(
+                      Math.min(moves.length - 2, currentMoveIndex)
                     )
                   }}
                 >
@@ -292,14 +270,15 @@ export default function EditRoute() {
                 </Button>
                 <Button
                   type="dashed"
+                  disabled={loadingSave}
                   icon={<PlusOutlined />}
                   onClick={() => {
-                    setSteps([
-                      ...steps.slice(0, currentStepIndex + 1),
+                    setMoves([
+                      ...moves.slice(0, currentMoveIndex + 1),
                       BLANK_STEP,
-                      ...steps.slice(currentStepIndex + 1),
+                      ...moves.slice(currentMoveIndex + 1),
                     ])
-                    setCurrentStepIndex(currentStepIndex + 1)
+                    setCurrentMoveIndex(currentMoveIndex + 1)
                   }}
                 >
                   Add another move
@@ -310,7 +289,18 @@ export default function EditRoute() {
         </div>
       </div>
       <div className="text-right mt-4">
-        <Button type="primary">Save route</Button>
+        <Button
+          type="primary"
+          loading={loadingSave}
+          onClick={async () => {
+            setLoadingSave(true)
+            const r = await saveMoves(route.id, moves)
+            console.log("SAVED", r)
+            setLoadingSave(false)
+          }}
+        >
+          Save route
+        </Button>
       </div>
     </div>
   )

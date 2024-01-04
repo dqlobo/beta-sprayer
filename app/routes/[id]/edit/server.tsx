@@ -7,3 +7,10 @@ export async function fetchRoute(id: number) {
     where: { id },
   })
 }
+
+export async function saveMoves(routeId: number, moves: any) {
+  return await prisma.route.update({
+    where: { id: routeId },
+    data: { moves },
+  })
+}
