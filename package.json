@@ -10,6 +10,7 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
+    "@ant-design/colors": "^7.0.2",
     "@ant-design/icons": "^5.2.6",
     "@ant-design/nextjs-registry": "^1.0.0",
     "@prisma/client": "^5.7.1",
@@ -17,6 +18,7 @@
     "antd": "^5.12.7",
     "axios": "^1.6.3",
     "classnames": "^2.5.1",
+    "hex-to-rgba": "^2.0.1",
     "next": "14.0.4",
     "react": "^18",
     "react-dom": "^18",

@@ -1,28 +1,20 @@
 import { RouteAnnotation } from "@/prisma/utils"
-import { MapAreas } from "react-img-mapper"
+import { RouteHold } from "./types"
 
-export function buildAnnotationsMap(rawAnnotations: any): MapAreas[] {
-  /* {
-              id: "test",
-              shape: "rect",
-              coords: [10, 100, 100, 200],
-              fillColor: "rgba(200,200,100,0.3)",
-              preFillColor: "rgba(200,200,0,0.3)", */
-
+export function buildHoldsDisplayAttributes(
+  rawAnnotations: any,
+  fitToWidth: number
+): RouteHold[] {
   if (!rawAnnotations) return []
 
-  const annotations = rawAnnotations as RouteAnnotation
-  return annotations.predictions.map((p, i) => ({
-    id: i.toString(),
-    shape: "rect",
-    coords: [
-      p.x - p.width / 2,
-      p.y - p.height / 2,
-      p.x + p.width / 2,
-      p.y + p.height / 2,
-    ],
-    name: "hold",
-    fillColor: "rgba(200,200,0,0.3)",
-    strokeColor: "#fff000",
+  const { predictions, meta } = rawAnnotations as RouteAnnotation
+
+  return predictions.map((p, i) => ({
+    id: i,
+    x: ((p.x - p.width / 2) * fitToWidth) / meta.width,
+    y: ((p.y - p.height / 2) * fitToWidth) / meta.width,
+    width: (p.width * fitToWidth) / meta.width,
+    height: (p.height * fitToWidth) / meta.width,
+    holdType: null,
   }))
 }

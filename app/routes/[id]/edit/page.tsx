@@ -11,35 +11,53 @@ import { Route } from "@prisma/client"
 import { Button, Form, Spin, Tag } from "antd"
 import TextArea from "antd/es/input/TextArea"
 import { useParams } from "next/navigation"
-import { useEffect, useRef, useState } from "react"
-import { MapAreas } from "react-img-mapper"
-import { TagsInput } from "react-tag-input-component"
+import { useEffect, useState } from "react"
+import RouteAnnotationSVG from "../_components/routeAnnotationSVG"
 import { fetchRoute } from "./server"
-import { buildAnnotationsMap } from "./utils"
+import { RouteHold, RouteHoldType } from "./types"
+import { buildHoldsDisplayAttributes } from "./utils"
+
+const ROUTE_DISPLAY_WIDTH = 300
 
 export default function EditRoute() {
   const [route, setRoute] = useState<Route>()
-  const [annotationsMap, setAnnotationsMap] = useState<MapAreas[]>([])
-  const [selectedHolds, setSelectedHolds] = useState<number[]>([])
+  const [holdsList, setHoldsList] = useState<RouteHold[]>([])
   const { id: routeId } = useParams()
-  const containerRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
     fetchRoute(parseInt(routeId as string)).then((r) => {
       setRoute(r!)
-      setAnnotationsMap(buildAnnotationsMap(r?.annotations))
-      console.log(buildAnnotationsMap(r?.annotations))
+      setHoldsList(
+        buildHoldsDisplayAttributes(r?.annotations, ROUTE_DISPLAY_WIDTH)
+      )
     })
   }, [routeId])
+  const selectedAnnotations = holdsList.filter((h) => h.holdType)
+  function clearSelection() {
+    setHoldsList(holdsList.map((hold) => ({ ...hold, holdType: null })))
+  }
+  function updateHold(holdToUpdate: RouteHold) {
+    setHoldsList(
+      holdsList.map((h) => {
+        if (h.id === holdToUpdate.id) {
+          return holdToUpdate
+        }
+        return h
+      })
+    )
+  }
 
-  function clearSelectedHolds() {
-    const containerRefTypeWorkaround = containerRef.current as any
-    containerRefTypeWorkaround.clearHighlightedArea()
-    // setSelectedHolds([])
+  function toggleHoldType(holdToUpdate: RouteHold) {
+    // State progression: hand -> foot -> null (not selected)
+    let nextHoldType: RouteHoldType | null = null
+    if (!holdToUpdate.holdType) {
+      nextHoldType = "hand"
+    } else if (holdToUpdate.holdType === "hand") {
+      nextHoldType = "foot"
+    }
+
+    updateHold({ ...holdToUpdate, holdType: nextHoldType })
   }
-  function appendSelection(e: any) {
-    setSelectedHolds([...selectedHolds, e])
-  }
-  console.log(selectedHolds.length)
+
   if (!route) {
     return (
       <div className="h-40 flex items-center justify-center">
@@ -47,7 +65,7 @@ export default function EditRoute() {
       </div>
     )
   }
-  console.log(annotationsMap)
+  console.log(holdsList)
   return (
     <div>
       {/* <Breadcrumb>
@@ -57,7 +75,10 @@ export default function EditRoute() {
 
       <div className="flex flex-row gap-4 mt-4">
         <div style={{ position: "relative" }}>
-          <img src={route.imageUrl} style={{ maxWidth: 200 }} />
+          <img
+            src={route.imageUrl}
+            style={{ maxWidth: ROUTE_DISPLAY_WIDTH, userSelect: "none" }}
+          />
           <svg
             style={{
               position: "absolute",
@@ -66,34 +87,26 @@ export default function EditRoute() {
               left: 0,
             }}
           >
-            {annotationsMap.map((a) => (
-              <rect
-                key={a.id}
-                x={(a.coords[0] * 200) / 3024}
-                y={(a.coords[1] * 200) / 3024}
-                width={((a.coords[2] - a.coords[0]) * 200) / 3024}
-                height={((a.coords[3] - a.coords[1]) * 200) / 3024}
+            {holdsList.map((hold) => (
+              <RouteAnnotationSVG
+                key={hold.id}
+                holdType={hold.holdType}
+                // x={(hold.x * 300) / 3024}
+                // y={(hold.y * 300) / 3024}
+                // width={(hold.width * 300) / 3024}
+                // height={(hold.height * 300) / 3024}
+                x={hold.x}
+                y={hold.y}
+                width={hold.width}
+                height={hold.height}
+                onClick={() => toggleHoldType(hold)}
               />
             ))}
           </svg>
         </div>
-        {/* <ImageMapper
-          containerRef={containerRef as { current: HTMLDivElement }}
-          // Note - ImageMapper doesn't work with HMR
-          src={route.imageUrl}
-          parentWidth={300}
-          responsive
-          active
-          stayMultiHighlighted
-          stayHighlighted
-          onClick={(e) => setSelectedHolds([...selectedHolds, 1])}
-          map={{
-            name: "holds",
-            areas: annotationsMap,
-          }}
-        /> */}
+
         <div className="flex-grow">
-          {selectedHolds.length > 0 && (
+          {selectedAnnotations.length > 0 && (
             <div className="flex justify-between mb-2 min-h-4">
               <div className="flex items-center gap-2 cursor-pointer">
                 <CaretLeftFilled /> <div>Previous move</div>
@@ -106,10 +119,10 @@ export default function EditRoute() {
           )}
 
           <div className="text-2xl font-bold mb-2">{route?.title}</div>
-          {selectedHolds.length === 0 && (
+          {selectedAnnotations.length === 0 && (
             <div>Select a hold to annotate the starting position</div>
           )}
-          {selectedHolds.length > 0 && (
+          {selectedAnnotations.length > 0 && (
             <div className="flex gap-2 flex-col">
               <div className="flex items-center gap-2">
                 <span className="font-bold text-gray-400 text-xs uppercase">
@@ -120,8 +133,8 @@ export default function EditRoute() {
 
               <div className="text-xs flex items-center gap-1">
                 <CheckSquareOutlined />
-                {selectedHolds.length} hold
-                {selectedHolds.length != 1 ? "s" : ""} selected
+                {selectedAnnotations.length} hold
+                {selectedAnnotations.length != 1 ? "s" : ""} selected
               </div>
 
               <Form layout="vertical" className="mt-2">
@@ -129,13 +142,6 @@ export default function EditRoute() {
                   <TextArea
                     value=""
                     placeholder="Add a note about how to get into this position..."
-                  />
-                </Form.Item>
-                <Form.Item label="Tags">
-                  <TagsInput
-                    separators={[","]}
-                    value={[]}
-                    onChange={() => {}}
                   />
                 </Form.Item>
               </Form>

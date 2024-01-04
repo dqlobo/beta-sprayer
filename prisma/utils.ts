@@ -38,6 +38,7 @@ export function transformAnnotations(
             ...
         ]
     }
+    todo consider just storing raw
     */
   if (typeof annotations !== "object") return
   const annotationsObject = annotations as any
