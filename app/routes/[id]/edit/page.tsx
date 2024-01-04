@@ -3,19 +3,18 @@
 import {
   CaretLeftFilled,
   CaretRightFilled,
-  CheckSquareOutlined,
   DeleteFilled,
   PlusCircleFilled,
 } from "@ant-design/icons"
 import { Route } from "@prisma/client"
-import { Button, Form, Spin, Tag } from "antd"
-import TextArea from "antd/es/input/TextArea"
+import { Button, Form, Input, Spin, Tag } from "antd"
 import { useParams } from "next/navigation"
 import { useEffect, useState } from "react"
 import RouteAnnotationSVG from "../_components/routeAnnotationSVG"
+import { footHoldColor, handHoldColor } from "./constants"
 import { fetchRoute } from "./server"
 import { RouteHold, RouteHoldType, RouteStep } from "./types"
-import { buildHoldsDisplayAttributes } from "./utils"
+import { buildHoldsDisplayAttributes, updateArrayWithPredicate } from "./utils"
 
 const ROUTE_DISPLAY_WIDTH = 300
 const MAX_HAND_FOOT_HOLDS = 2
@@ -31,6 +30,7 @@ export default function EditRoute() {
   const [holdsList, setHoldsList] = useState<RouteHold[]>([])
   const [steps, setSteps] = useState<RouteStep[]>([BLANK_STEP])
   const [currentStepIndex, setCurrentStepIndex] = useState<number>(0)
+  const currentStep = steps[currentStepIndex]
 
   const { id: routeId } = useParams()
 
@@ -45,15 +45,40 @@ export default function EditRoute() {
 
   const selectedAnnotations = holdsList.filter((h) => h.holdType)
 
-  function updateHold(holdToUpdate: RouteHold) {
-    setHoldsList(
-      holdsList.map((h) => {
-        if (h.id === holdToUpdate.id) {
-          return holdToUpdate
-        }
-        return h
-      })
+  function updateHolds(
+    predicate: (hold: RouteHold) => boolean,
+    changes: Partial<RouteHold>
+  ) {
+    const newHoldsList = updateArrayWithPredicate<RouteHold>(
+      holdsList,
+      predicate,
+      changes
     )
+    setHoldsList(newHoldsList)
+    setSteps(
+      updateArrayWithPredicate<RouteStep>(
+        steps,
+        (s, i) => i === currentStepIndex,
+        {
+          handHoldIds: newHoldsList
+            .filter((h) => h.holdType === "hand")
+            .map((h) => h.id),
+          footHoldIds: newHoldsList
+            .filter((h) => h.holdType === "foot")
+            .map((h) => h.id),
+        }
+      )
+    )
+
+    // UGH refactor this... but until then...
+    // setSteps(
+    //   steps.map((s, i) => {
+    //     if (i === currentStepIndex) {
+    //       return { ...s, footHoldIds }
+    //     }
+    //     return s
+    //   })
+    // )
   }
 
   function toggleHoldType(holdToUpdate: RouteHold) {
@@ -63,13 +88,16 @@ export default function EditRoute() {
 
     while (
       holdProgression[nextIndex] &&
-      holdsList.filter((h) => h.holdType === holdProgression[nextIndex])
-        .length >= MAX_HAND_FOOT_HOLDS
+      selectedAnnotations.filter(
+        (h) => h.holdType === holdProgression[nextIndex]
+      ).length >= MAX_HAND_FOOT_HOLDS
     ) {
       nextIndex += 1
     }
 
-    updateHold({ ...holdToUpdate, holdType: holdProgression[nextIndex] })
+    updateHolds((h) => h.id === holdToUpdate.id, {
+      holdType: holdProgression[nextIndex],
+    })
   }
 
   if (!route) {
@@ -142,17 +170,54 @@ export default function EditRoute() {
                   Move {currentStepIndex + 1} of {steps.length}
                 </Tag>
               </div>
-
-              <div className="text-xs flex items-center gap-1">
-                <CheckSquareOutlined />
-                {selectedAnnotations.length} hold
-                {selectedAnnotations.length != 1 ? "s" : ""} selected
+              <div className="flex items-center">
+                <span className="font-bold text-gray-400 text-xs uppercase mr-2">
+                  Placements:
+                </span>
+                {currentStep.handHoldIds.length > 0 && (
+                  <Tag
+                    color={handHoldColor}
+                    closable
+                    onClose={() =>
+                      updateHolds((h) => h.holdType === "hand", {
+                        holdType: null,
+                      })
+                    }
+                  >
+                    {currentStep.handHoldIds.length} hand
+                    {currentStep.handHoldIds.length != 1 ? "s" : ""}
+                  </Tag>
+                )}
+                {currentStep.footHoldIds.length > 0 && (
+                  <Tag
+                    color={footHoldColor}
+                    closable
+                    onClose={() =>
+                      updateHolds((h) => h.holdType === "foot", {
+                        holdType: null,
+                      })
+                    }
+                  >
+                    {currentStep.footHoldIds.length}{" "}
+                    {currentStep.footHoldIds.length > 1 ? "feet" : "foot"}
+                  </Tag>
+                )}
               </div>
 
-              <Form layout="vertical" className="mt-2">
+              <Form layout="vertical">
                 <Form.Item label="Description">
-                  <TextArea
-                    value=""
+                  <Input.TextArea
+                    autoSize={{ minRows: 3, maxRows: 7 }}
+                    value={currentStep.description}
+                    onChange={(e) =>
+                      setSteps(
+                        updateArrayWithPredicate(
+                          steps,
+                          (s, i) => i === currentStepIndex,
+                          { description: e.target.value }
+                        )
+                      )
+                    }
                     placeholder="Add a note about how to get into this position..."
                   />
                 </Form.Item>

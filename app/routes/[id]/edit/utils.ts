@@ -18,3 +18,16 @@ export function buildHoldsDisplayAttributes(
     holdType: null,
   }))
 }
+
+export function updateArrayWithPredicate<T>(
+  array: T[],
+  predicate: (obj: T, i: number) => boolean,
+  changes: Partial<T>
+): T[] {
+  return array.map((curr, i) => {
+    if (predicate(curr, i)) {
+      return { ...curr, ...changes }
+    }
+    return curr
+  })
+}
