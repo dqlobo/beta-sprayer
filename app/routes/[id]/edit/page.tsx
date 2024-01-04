@@ -9,8 +9,9 @@ import {
   PlusOutlined,
 } from "@ant-design/icons"
 import { Route } from "@prisma/client"
-import { Button, Input, Spin, Tag } from "antd"
+import { Breadcrumb, Button, Input, Spin, Tag, message } from "antd"
 import classNames from "classnames"
+import Link from "next/link"
 import { useParams } from "next/navigation"
 import percentile from "percentile"
 import { useCallback, useEffect, useMemo, useState } from "react"
@@ -20,7 +21,7 @@ import { fetchRoute, saveMoves } from "./server"
 import { RouteHold, RouteHoldType, RouteMove } from "./types"
 import { buildHoldsDisplayAttributes, updateArrayWithPredicate } from "./utils"
 
-const ROUTE_DISPLAY_WIDTH = 300
+const ROUTE_DISPLAY_WIDTH = 500
 const MAX_HAND_FOOT_HOLDS = 2
 
 const BLANK_STEP: RouteMove = {
@@ -41,6 +42,7 @@ export default function EditRoute() {
     () => moves[currentMoveIndex],
     [moves, currentMoveIndex]
   )
+  const [toaster, messageContextHolder] = message.useMessage()
   const selectedHoldCount =
     currentMove.handHoldIds.length + currentMove.footHoldIds.length
 
@@ -129,6 +131,26 @@ export default function EditRoute() {
 
   return (
     <div>
+      <div className="flex justify-between items-center">
+        <Breadcrumb>
+          <Breadcrumb.Item>
+            <Link href="/">Home</Link>
+          </Breadcrumb.Item>
+          <Breadcrumb.Item>Edit route</Breadcrumb.Item>
+        </Breadcrumb>
+        <Button
+          type="primary"
+          loading={loadingSave}
+          onClick={async () => {
+            setLoadingSave(true)
+            const r = await saveMoves(route.id, moves)
+            toaster.success(`Saved "${route.title}"`)
+            setLoadingSave(false)
+          }}
+        >
+          Save route
+        </Button>
+      </div>
       <div className="flex flex-row gap-4 mt-4">
         <div style={{ position: "relative" }}>
           <img
@@ -275,7 +297,7 @@ export default function EditRoute() {
                   onClick={() => {
                     setMoves([
                       ...moves.slice(0, currentMoveIndex + 1),
-                      BLANK_STEP,
+                      { ...currentMove, description: "" }, // add the move again so UX is easier to tweak climber position
                       ...moves.slice(currentMoveIndex + 1),
                     ])
                     setCurrentMoveIndex(currentMoveIndex + 1)
@@ -288,20 +310,7 @@ export default function EditRoute() {
           </div>
         </div>
       </div>
-      <div className="text-right mt-4">
-        <Button
-          type="primary"
-          loading={loadingSave}
-          onClick={async () => {
-            setLoadingSave(true)
-            const r = await saveMoves(route.id, moves)
-            console.log("SAVED", r)
-            setLoadingSave(false)
-          }}
-        >
-          Save route
-        </Button>
-      </div>
+      {messageContextHolder}
     </div>
   )
 }

@@ -1,41 +1,46 @@
 "use client"
 
 import { PlusCircleOutlined } from "@ant-design/icons"
-import { Button, Pagination } from "antd"
+import { Route } from "@prisma/client"
+import { Button, Spin } from "antd"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
+import { listRecentRoutes } from "./server"
 export default function Home() {
   const router = useRouter()
+  const [recentRoutes, setRecentRoutes] = useState<Route[]>()
+  useEffect(() => {
+    async function fetchRouteData() {
+      const resp = await listRecentRoutes()
+      setRecentRoutes(resp)
+    }
+    fetchRouteData()
+  }, [])
   return (
     <>
       <h2 className="text-2xl font-bold">Welcome to BetaSprayer!</h2>{" "}
       <Link href="/new">
-        <Button icon={<PlusCircleOutlined />}>Add route</Button>
+        <Button type="primary" icon={<PlusCircleOutlined />}>
+          Add route
+        </Button>
       </Link>
-      <h3 className="text-md font-light text-gray-400">Recently added</h3>
-      {/* <Table striped hoverable>
-        <TableBody>
-          <TableRow
-            className="cursor-pointerf"
-            onClick={() => router.push("/routes/3/edit")}
-          >
-            <TableCell>Test</TableCell>
-            <TableCell>asdf</TableCell>
-            <TableCell>V4</TableCell>
-          </TableRow>
-          <TableRow
-            className="cursor-pointerf"
-            onClick={() => router.push("/routes/3/edit")}
-          >
-            <TableCell>Test</TableCell>
-            <TableCell>asdf</TableCell>
-            <TableCell>V4</TableCell>
-          </TableRow>
-        </TableBody>
-      </Table>{" "} */}
-      <div>
-        <Pagination current={0} />
+      <div className="text-md mt-4 font-light text-gray-400">
+        Recently added
       </div>
+      {!recentRoutes && <Spin />}
+      {recentRoutes && (
+        <table>
+          {recentRoutes!.map((route) => (
+            <tr key={route.id} className="border-b-2  border-black border">
+              <td width={300}>{route.title}</td>
+              <td>
+                <Link href={`/routes/${route.id}/edit`}>Edit</Link>
+              </td>
+            </tr>
+          ))}
+        </table>
+      )}
     </>
   )
 }

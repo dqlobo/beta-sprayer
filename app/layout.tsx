@@ -21,7 +21,7 @@ export default function RootLayout({
       <body className={`${inter.className} min-h-screen flex flex-col`}>
         <Navigation />
         <div className="flex flex-grow items-center justify-center">
-          <div className="w-2/4 transition-all">
+          <div className="w-3/4 transition-all">
             <Card>{children}</Card>
           </div>
         </div>

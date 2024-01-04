@@ -2,23 +2,15 @@
 
 import axios, { AxiosResponse } from "axios"
 import classNames from "classnames"
-import {
-  Badge,
-  Breadcrumb,
-  BreadcrumbItem,
-  Button,
-  Label,
-  RangeSlider,
-  TextInput,
-} from "flowbite-react"
-import Image from "next/image"
+
+import { Breadcrumb, Button, Input, Slider } from "antd"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { PostUploadImage } from "../api/roboflow/upload_image/route"
-import Dropzone from "./dropzone"
+import DifficultyTag from "./_components/difficultyTag"
+import Dropzone from "./_components/dropzone"
 
-const MAX_SLIDER = 100
 const MAX_DIFFICULTY = 12
 
 export default function NewRoute() {
@@ -35,10 +27,6 @@ export default function NewRoute() {
   }, [])
 
   const [sliderControlValue, setSliderControlValue] = useState(0)
-  const routeGrade = useMemo(
-    () => Math.round((sliderControlValue / MAX_SLIDER) * MAX_DIFFICULTY),
-    [sliderControlValue]
-  )
 
   const router = useRouter()
 
@@ -55,17 +43,18 @@ export default function NewRoute() {
   }, [image, routeName, router])
   return (
     <>
-      {" "}
       <Breadcrumb>
-        <BreadcrumbItem href="/">Home</BreadcrumbItem>
-        <BreadcrumbItem>Add route</BreadcrumbItem>
+        <Breadcrumb.Item>
+          <Link href="/">Home</Link>
+        </Breadcrumb.Item>
+        <Breadcrumb.Item>New route</Breadcrumb.Item>
       </Breadcrumb>
-      <h2 className="text-2xl font-bold">
+      <div className="text-2xl font-bold mb-4 mt-2">
         {!image ? "Upload Image" : "Add Route Details"}
-      </h2>
+      </div>
       {!image && (
         <>
-          <div className="text-light text-sm text-gray-400">
+          <div className="text-light text-md text-gray-400 mb-2">
             Add a photo of the entire route below. For best results, take the
             picture with good lighting.
           </div>
@@ -79,11 +68,10 @@ export default function NewRoute() {
       {image && (
         <>
           <div className="flex gap-4 max-w-fill flex-col lg:flex-row">
-            <Image
+            <img
               src={image.preview}
               alt="User uploaded image preview"
               width={200}
-              height={20}
               className="rounded-lg"
               onLoad={() => {
                 URL.revokeObjectURL(image.preview)
@@ -92,11 +80,10 @@ export default function NewRoute() {
             <div className="flex-grow flex flex-col gap-2">
               <div>
                 <div>
-                  <Label htmlFor="routeName" value="Route name" />
+                  <label htmlFor="routeName">Route name</label>
                 </div>
-                <TextInput
+                <Input
                   id="routeName"
-                  type="text"
                   placeholder="My route"
                   required
                   autoFocus
@@ -107,20 +94,17 @@ export default function NewRoute() {
               </div>
               <div className="self-stretch">
                 <div>
-                  <Label htmlFor="gradeSlider" value="Difficulty" />
+                  <label htmlFor="gradeSlider">Difficulty</label>
                 </div>
-                <div className="flex gap-4">
-                  <Badge color="gray" className="text-lg font-semibold">
-                    v{routeGrade}
-                  </Badge>
-                  <RangeSlider
+                <div className="flex items-center gap-4">
+                  <DifficultyTag grade={sliderControlValue} />
+                  <Slider
                     id="gradeSlider"
                     className="flex-grow sm-range"
                     value={sliderControlValue}
+                    max={MAX_DIFFICULTY}
                     disabled={loading}
-                    onChange={(e) =>
-                      setSliderControlValue(e.target.valueAsNumber)
-                    }
+                    onChange={(e) => setSliderControlValue(e)}
                   />
                 </div>
               </div>
@@ -128,7 +112,7 @@ export default function NewRoute() {
           </div>
           <div>
             <div className="flex items-center justify-start gap-4 mt-4">
-              <Button onClick={runRoboflow} isProcessing={loading}>
+              <Button type="primary" onClick={runRoboflow} loading={loading}>
                 {!loading ? "Analyze route" : "Analyzing..."}
               </Button>
               <Link
