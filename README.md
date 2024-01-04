@@ -4,7 +4,7 @@ _This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-nex
 
 ## Context
 
-Some climbers refer to a route as a "problem" because the different moves you make are pieces to the puzzle that allow you to get to the top. Contrary to popular belief, strength is often not the most important component of climbing successfully.
+Some climbers refer to a route as a "problem" because the different moves you make are pieces to the puzzle that allow you to get to the top. Contrary to popular belief, strength is often not the most important component of climbing successfully, _problem solving is_!
 
 The best climbers know how to "read" a route and pick out exactly which holds to use at what time. It can be frustrating if someone spoils the "beta" (the solution to the route), **so much so that the slang term "Beta sprayer" has become very popular** in climbing circles. When prompted, however, getting climbing beta can help you develop as a climber. Learning by doing!
 
@@ -22,7 +22,11 @@ There are a million ways I'd love to build on this project, but to name a few:
 
 - **Color auto-routing**
 
-  Climbing routes are color coordinated, we should be able to sense within the bounding box to auto-find a route pretty easily
+  Climbing routes are color coordinated, we should be able to sense within the bounding box to auto-find a route pretty easily.
+
+- **Route auto-solving**
+
+  Given a climber's height and skill level, if you can identify the exact manufactured hold (As I demonstrated is possible in [another Roboflow model)](https://universe.roboflow.com/loboflow-go1lj/climbing-wall) and combine the hold type with rotation and relative position to other holds, a computer algorithm could feasibly solve the route. This was my initial inspiration for this project.
 
 - **View route moves as animated sequence**
 
