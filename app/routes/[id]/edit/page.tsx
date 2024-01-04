@@ -85,18 +85,20 @@ export default function EditRoute() {
 
   function onClickHold(id: number) {
     const currentHoldType = holdTypeById(id)
-
-    const selectionSequence: RouteHoldType[] = ["hand", "foot", null]
-    let nextIndex = (selectionSequence.indexOf(currentHoldType) + 1) % 3
-    if (
-      selectionSequence[nextIndex] &&
-      currentMove.handHoldIds.length >= MAX_HAND_FOOT_HOLDS &&
-      currentMove.footHoldIds.length >= MAX_HAND_FOOT_HOLDS
-    ) {
+    const allSelectedHolds = [
+      ...currentMove.footHoldIds,
+      ...currentMove.handHoldIds,
+    ]
+    console.log("click hold")
+    if (allSelectedHolds.length === 4 && !allSelectedHolds.includes(id)) {
       toaster.error(
         "This move is out of holds. Try deselecting holds in the Placements section."
       )
     }
+
+    const selectionSequence: RouteHoldType[] = ["hand", "foot", null]
+    let nextIndex = (selectionSequence.indexOf(currentHoldType) + 1) % 3
+
     if (
       selectionSequence[nextIndex] === "hand" &&
       currentMove.handHoldIds.length >= MAX_HAND_FOOT_HOLDS
