@@ -17,3 +17,21 @@ model Route {
     annotations Json?
     grade       Int?
 }
+
+// model RectHold {
+//     id     Int    @id @default(autoincrement())
+//     x      Int
+//     y      Int
+//     width  Int
+//     height Int
+//     steps  Step[]
+// }
+
+// model HoldPosition {
+//     steps Step[]
+// }
+
+// model Step {
+//     id    Int        @id @default(autoincrement())
+//     holds RectHold[]
+// }

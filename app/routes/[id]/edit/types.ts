@@ -10,8 +10,8 @@ export interface RouteHold {
   //   confidence
 }
 
-export interface RouteMove {
-  holds: RouteHold[]
+export interface RouteStep {
+  handHoldIds: number[]
+  footHoldIds: number[]
   description: string
-  tags: string[]
 }

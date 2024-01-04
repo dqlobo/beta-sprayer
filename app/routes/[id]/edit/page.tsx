@@ -14,15 +14,26 @@ import { useParams } from "next/navigation"
 import { useEffect, useState } from "react"
 import RouteAnnotationSVG from "../_components/routeAnnotationSVG"
 import { fetchRoute } from "./server"
-import { RouteHold, RouteHoldType } from "./types"
+import { RouteHold, RouteHoldType, RouteStep } from "./types"
 import { buildHoldsDisplayAttributes } from "./utils"
 
 const ROUTE_DISPLAY_WIDTH = 300
+const MAX_HAND_FOOT_HOLDS = 2
+
+const BLANK_STEP: RouteStep = {
+  handHoldIds: [],
+  footHoldIds: [],
+  description: "",
+}
 
 export default function EditRoute() {
   const [route, setRoute] = useState<Route>()
   const [holdsList, setHoldsList] = useState<RouteHold[]>([])
+  const [steps, setSteps] = useState<RouteStep[]>([BLANK_STEP])
+  const [currentStepIndex, setCurrentStepIndex] = useState<number>(0)
+
   const { id: routeId } = useParams()
+
   useEffect(() => {
     fetchRoute(parseInt(routeId as string)).then((r) => {
       setRoute(r!)
@@ -31,10 +42,9 @@ export default function EditRoute() {
       )
     })
   }, [routeId])
+
   const selectedAnnotations = holdsList.filter((h) => h.holdType)
-  function clearSelection() {
-    setHoldsList(holdsList.map((hold) => ({ ...hold, holdType: null })))
-  }
+
   function updateHold(holdToUpdate: RouteHold) {
     setHoldsList(
       holdsList.map((h) => {
@@ -48,14 +58,18 @@ export default function EditRoute() {
 
   function toggleHoldType(holdToUpdate: RouteHold) {
     // State progression: hand -> foot -> null (not selected)
-    let nextHoldType: RouteHoldType | null = null
-    if (!holdToUpdate.holdType) {
-      nextHoldType = "hand"
-    } else if (holdToUpdate.holdType === "hand") {
-      nextHoldType = "foot"
+    const holdProgression: RouteHoldType[] = ["hand", "foot", null]
+    let nextIndex = (holdProgression.indexOf(holdToUpdate.holdType) + 1) % 3
+
+    while (
+      holdProgression[nextIndex] &&
+      holdsList.filter((h) => h.holdType === holdProgression[nextIndex])
+        .length >= MAX_HAND_FOOT_HOLDS
+    ) {
+      nextIndex += 1
     }
 
-    updateHold({ ...holdToUpdate, holdType: nextHoldType })
+    updateHold({ ...holdToUpdate, holdType: holdProgression[nextIndex] })
   }
 
   if (!route) {
@@ -65,7 +79,7 @@ export default function EditRoute() {
       </div>
     )
   }
-  console.log(holdsList)
+
   return (
     <div>
       {/* <Breadcrumb>
@@ -91,10 +105,6 @@ export default function EditRoute() {
               <RouteAnnotationSVG
                 key={hold.id}
                 holdType={hold.holdType}
-                // x={(hold.x * 300) / 3024}
-                // y={(hold.y * 300) / 3024}
-                // width={(hold.width * 300) / 3024}
-                // height={(hold.height * 300) / 3024}
                 x={hold.x}
                 y={hold.y}
                 width={hold.width}
@@ -128,7 +138,9 @@ export default function EditRoute() {
                 <span className="font-bold text-gray-400 text-xs uppercase">
                   Now describing:
                 </span>
-                <Tag color="gray">Move 1 of 1</Tag>
+                <Tag color="gray">
+                  Move {currentStepIndex + 1} of {steps.length}
+                </Tag>
               </div>
 
               <div className="text-xs flex items-center gap-1">
