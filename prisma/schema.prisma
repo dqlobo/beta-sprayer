@@ -15,23 +15,6 @@ model Route {
     createdAt   DateTime @default(now()) @map(name: "created_at")
     updatedAt   DateTime @updatedAt @map(name: "updated_at")
     annotations Json?
+    moves       Json?
     grade       Int?
 }
-
-// model RectHold {
-//     id     Int    @id @default(autoincrement())
-//     x      Int
-//     y      Int
-//     width  Int
-//     height Int
-//     steps  Step[]
-// }
-
-// model HoldPosition {
-//     steps Step[]
-// }
-
-// model Step {
-//     id    Int        @id @default(autoincrement())
-//     holds RectHold[]
-// }

@@ -7,7 +7,7 @@ export interface RouteHold {
   width: number
   height: number
   holdType: RouteHoldType
-  //   confidence
+  confidence: number
 }
 
 export interface RouteStep {

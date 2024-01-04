@@ -54,7 +54,6 @@ export function transformAnnotations(
       width: p.width,
       height: p.height,
       confidence: p.confidence,
-      tags: [],
     })),
   } as RouteAnnotation
 }

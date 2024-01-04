@@ -1,4 +1,5 @@
 import { RouteAnnotation } from "@/prisma/utils"
+import { gray, green } from "@ant-design/colors"
 import { RouteHold } from "./types"
 
 export function buildHoldsDisplayAttributes(
@@ -16,6 +17,7 @@ export function buildHoldsDisplayAttributes(
     width: (p.width * fitToWidth) / meta.width,
     height: (p.height * fitToWidth) / meta.width,
     holdType: null,
+    confidence: p.confidence,
   }))
 }
 
@@ -30,4 +32,10 @@ export function updateArrayWithPredicate<T>(
     }
     return curr
   })
+}
+
+export function calculateSelectionBadgeColor(count: number): string {
+  if (count >= 4) return green[3]
+  if (count > 0) return gray[3]
+  return gray[3]
 }
