@@ -1,8 +1,8 @@
+import { AntdRegistry } from "@ant-design/nextjs-registry"
 import { Card } from "antd"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
-import Navigation from "./navigation"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -19,12 +19,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} min-h-screen flex flex-col`}>
-        <Navigation />
-        <div className="flex flex-grow items-center justify-center">
-          <div className="w-3/4 transition-all">
-            <Card>{children}</Card>
+        <AntdRegistry>
+          <div className="flex flex-grow items-center justify-center">
+            <div className="w-3/4 transition-all">
+              <Card>{children}</Card>
+            </div>
           </div>
-        </div>
+        </AntdRegistry>
       </body>
     </html>
   )
