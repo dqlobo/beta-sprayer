@@ -30,7 +30,7 @@ There are a million ways I'd love to build on this project, but to name a few:
 
 - **View route moves as animated sequence**
 
-  Others: User authentication, beta ownership, route geotagging, enterprise users (Catalog all the routes at your gym for new climbers)
+- Others: User authentication, beta ownership, route geotagging, enterprise users (Catalog all the routes at your gym for new climbers)
 
 #### Tech debt
 
