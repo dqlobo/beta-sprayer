@@ -88,7 +88,15 @@ export default function EditRoute() {
 
     const selectionSequence: RouteHoldType[] = ["hand", "foot", null]
     let nextIndex = (selectionSequence.indexOf(currentHoldType) + 1) % 3
-
+    if (
+      selectionSequence[nextIndex] &&
+      currentMove.handHoldIds.length >= MAX_HAND_FOOT_HOLDS &&
+      currentMove.footHoldIds.length >= MAX_HAND_FOOT_HOLDS
+    ) {
+      toaster.error(
+        "This move is out of holds. Try deselecting holds in the Placements section."
+      )
+    }
     if (
       selectionSequence[nextIndex] === "hand" &&
       currentMove.handHoldIds.length >= MAX_HAND_FOOT_HOLDS
@@ -101,15 +109,6 @@ export default function EditRoute() {
       currentMove.footHoldIds.length >= MAX_HAND_FOOT_HOLDS
     ) {
       nextIndex += 1
-    }
-
-    if (
-      currentMove.handHoldIds.length >= MAX_HAND_FOOT_HOLDS &&
-      currentMove.footHoldIds.length >= MAX_HAND_FOOT_HOLDS
-    ) {
-      toaster.error(
-        "This move is out of holds. Try deselecting holds in the Placements section."
-      )
     }
 
     // TODO figure out better data structure for this...
