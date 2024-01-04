@@ -102,6 +102,16 @@ export default function EditRoute() {
     ) {
       nextIndex += 1
     }
+
+    if (
+      currentMove.handHoldIds.length >= MAX_HAND_FOOT_HOLDS &&
+      currentMove.footHoldIds.length >= MAX_HAND_FOOT_HOLDS
+    ) {
+      toaster.error(
+        "This move is out of holds. Try deselecting holds in the Placements section."
+      )
+    }
+
     // TODO figure out better data structure for this...
     setMoves(
       moves.map((s, i) => {
