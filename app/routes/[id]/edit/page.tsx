@@ -5,14 +5,15 @@ import {
   CaretLeftFilled,
   CaretRightFilled,
   CheckSquareFilled,
-  DeleteFilled,
-  PlusCircleFilled,
+  DeleteOutlined,
+  PlusOutlined,
 } from "@ant-design/icons"
 import { Route } from "@prisma/client"
-import { Button, Input, Pagination, Spin, Tag } from "antd"
+import { Button, Input, Spin, Tag } from "antd"
+import classNames from "classnames"
 import { useParams } from "next/navigation"
 import percentile from "percentile"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import RouteAnnotationSVG from "../_components/routeAnnotationSVG"
 import { footHoldColor, handHoldColor } from "./constants"
 import { fetchRoute } from "./server"
@@ -28,12 +29,17 @@ const BLANK_STEP: RouteStep = {
   description: "",
 }
 
+const FORM_HEADER_STYLE = "font-bold text-gray-400 text-xs uppercase mr-2 mb-1"
+
 export default function EditRoute() {
   const [route, setRoute] = useState<Route>()
   const [holdsList, setHoldsList] = useState<RouteHold[]>([])
   const [steps, setSteps] = useState<RouteStep[]>([BLANK_STEP])
   const [currentStepIndex, setCurrentStepIndex] = useState<number>(0)
-  const currentStep = steps[currentStepIndex]
+  const currentStep = useMemo(
+    () => steps[currentStepIndex],
+    [steps, currentStepIndex]
+  )
   const selectedHoldCount =
     currentStep.handHoldIds.length + currentStep.footHoldIds.length
 
@@ -47,8 +53,6 @@ export default function EditRoute() {
       )
     })
   }, [routeId])
-
-  const selectedAnnotations = holdsList.filter((h) => h.holdType)
 
   const holdTypeById = useCallback(
     (id: number): RouteHoldType => {
@@ -86,21 +90,6 @@ export default function EditRoute() {
     )
   }
 
-  function displayAnnotationsForStepIndex(index: number) {
-    // const newStep = steps[index]
-    // setHoldsList(
-    //   holdsList.map((h) => {
-    //     if (newStep.handHoldIds.includes(h.id)) {
-    //       return { ...h, holdType: "hand" }
-    //     } else if (newStep.footHoldIds.includes(h.id)) {
-    //       return { ...h, holdType: "foot" }
-    //     } else {
-    //       return { ...h, holdType: null }
-    //     }
-    //   })
-    // )
-  }
-
   function onClickHold(id: number) {
     const currentHoldType = holdTypeById(id)
 
@@ -120,7 +109,7 @@ export default function EditRoute() {
     ) {
       nextIndex += 1
     }
-
+    // TODO figure out better data structure for this...
     setSteps(
       steps.map((s, i) => {
         if (i === currentStepIndex) {
@@ -139,25 +128,6 @@ export default function EditRoute() {
     )
   }
 
-  function toggleHoldType(holdToUpdate: RouteHold) {
-    // State progression: hand -> foot -> null (not selected)
-    const holdProgression: RouteHoldType[] = ["hand", "foot", null]
-    let nextIndex = (holdProgression.indexOf(holdToUpdate.holdType) + 1) % 3
-
-    while (
-      holdProgression[nextIndex] &&
-      selectedAnnotations.filter(
-        (h) => h.holdType === holdProgression[nextIndex]
-      ).length >= MAX_HAND_FOOT_HOLDS
-    ) {
-      nextIndex += 1
-    }
-
-    updateHolds((h) => h.id === holdToUpdate.id, {
-      holdType: holdProgression[nextIndex],
-    })
-  }
-
   if (!route) {
     return (
       <div className="h-40 flex items-center justify-center">
@@ -168,11 +138,6 @@ export default function EditRoute() {
 
   return (
     <div>
-      {/* <Breadcrumb>
-        <BreadcrumbItem href="/">Home</BreadcrumbItem>
-        <BreadcrumbItem>Edit route</BreadcrumbItem>
-      </Breadcrumb> */}
-
       <div className="flex flex-row gap-4 mt-4">
         <div style={{ position: "relative" }}>
           <img
@@ -214,31 +179,41 @@ export default function EditRoute() {
         </div>
 
         <div className="flex-grow">
+          <div className="text-2xl font-bold mb-2">{route?.title}</div>
           <div className="flex justify-between mb-2 min-h-4">
-            <div className="flex items-center gap-2 cursor-pointer">
+            <div
+              onClick={() => setCurrentStepIndex(currentStepIndex - 1)}
+              className={classNames("flex items-center gap-2", {
+                "cursor-pointer text-blue-500": currentStepIndex > 0,
+                "cursor-not-allowed text-gray-400 pointer-events-none":
+                  currentStepIndex === 0,
+              })}
+            >
               <CaretLeftFilled /> <div>Previous move</div>
             </div>
-            <div className="flex items-center gap-2 cursor-pointer">
+
+            <div
+              onClick={() => setCurrentStepIndex(currentStepIndex + 1)}
+              className={classNames("flex items-center gap-2", {
+                "cursor-pointer text-blue-500":
+                  currentStepIndex < steps.length - 1,
+                "cursor-not-allowed text-gray-400 pointer-events-none":
+                  currentStepIndex === steps.length - 1,
+              })}
+            >
               <div>Next move</div>
               <CaretRightFilled />
             </div>
           </div>
-
-          <div className="text-2xl font-bold mb-2">{route?.title}</div>
-
-          <div className="flex gap-2 flex-col">
-            <Pagination
-              current={currentStepIndex + 1}
-              total={steps.length}
-              onChange={(p) => setCurrentStepIndex(p - 1)}
-              defaultPageSize={1}
-              showTotal={(t) => [t, ` step${t == 1 ? "" : "s"}`].join("")}
-            />
-
-            <div className="flex items-center min-h-6">
-              <span className="font-bold text-gray-400 text-xs uppercase mr-2">
-                Placements
-              </span>
+          <div className="flex gap-4 flex-col mt-4">
+            <div>
+              <div className={FORM_HEADER_STYLE}>Now labeling</div>
+              <div className="text-lg font-semibold">
+                Move {currentStepIndex + 1} of {steps.length}
+              </div>
+            </div>
+            <div>
+              <div className={FORM_HEADER_STYLE}>Placements</div>
 
               {selectedHoldCount === 0 && (
                 <span className="text-sm text-gray-400 italic">
@@ -279,42 +254,56 @@ export default function EditRoute() {
                 </Tag>
               )}
             </div>
-            <div className="font-bold text-gray-400 text-xs uppercase">
-              Description
-            </div>
-            <Input.TextArea
-              autoSize={{ minRows: 3, maxRows: 7 }}
-              value={currentStep.description}
-              onChange={(e) =>
-                setSteps(
-                  updateArrayWithPredicate(
-                    steps,
-                    (s, i) => i === currentStepIndex,
-                    { description: e.target.value }
+            <div>
+              <div className={FORM_HEADER_STYLE}>Description</div>
+              <Input.TextArea
+                autoSize={{ minRows: 3, maxRows: 7 }}
+                value={currentStep.description}
+                onChange={(e) =>
+                  setSteps(
+                    updateArrayWithPredicate(
+                      steps,
+                      (s, i) => i === currentStepIndex,
+                      { description: e.target.value }
+                    )
                   )
-                )
-              }
-              placeholder="Add a note about how to get into this position..."
-            />
-
+                }
+                placeholder="Add a note about how to get into this position..."
+              />
+            </div>
             <div className="cursor-pointer">
               <div className="flex gap-4 items-center justify-between">
-                <div className="font-light text-sm flex items-center gap-1 text-red-500">
-                  <DeleteFilled /> <div>Delete this move</div>
-                </div>
-                <div
-                  className="font-light text-sm flex items-center gap-1 text-blue-500"
+                <Button
+                  danger
+                  icon={<DeleteOutlined />}
+                  type="dashed"
+                  disabled={steps.length <= 1}
                   onClick={() => {
                     setSteps([
                       ...steps.slice(0, currentStepIndex),
+                      ...steps.slice(currentStepIndex + 1),
+                    ])
+                    setCurrentStepIndex(
+                      Math.min(steps.length - 2, currentStepIndex)
+                    )
+                  }}
+                >
+                  Delete this move
+                </Button>
+                <Button
+                  type="dashed"
+                  icon={<PlusOutlined />}
+                  onClick={() => {
+                    setSteps([
+                      ...steps.slice(0, currentStepIndex + 1),
                       BLANK_STEP,
-                      ...steps.slice(currentStepIndex),
+                      ...steps.slice(currentStepIndex + 1),
                     ])
                     setCurrentStepIndex(currentStepIndex + 1)
                   }}
                 >
-                  <PlusCircleFilled /> <div>Add another move</div>
-                </div>
+                  Add another move
+                </Button>
               </div>
             </div>
           </div>
