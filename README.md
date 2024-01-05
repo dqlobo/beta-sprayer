@@ -6,7 +6,7 @@ Running locally:
 
 1. Install Node v21.5.0 (I just used NVM for this: `nvm install node`)
 2. Set up databases
-   - Since this was a fast turnaround project I used the production database while I was developing locally. If this was a serious project, I would set up a better dev environment.
+   - _Fair warning: Since this was a fast turnaround project I didn't spend much time on devops best practices_
    - You can set up a vercel account [here](https://vercel.com/docs/getting-started-with-vercel)
    - Then add [blob storage](https://vercel.com/docs/storage/vercel-blob/quickstart) and [database storage](https://vercel.com/docs/storage/vercel-postgres/quickstart). 
    - You can keep your environment in sync really easily with the `vercel env pull` command
