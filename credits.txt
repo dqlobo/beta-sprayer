@@ -2,4 +2,3 @@ https://unsplash.com/photos/four-brown-wooden-wall-decors-VQpOgh5R68I
 https://react-dropzone.js.org/#section-previews
 https://vercel.com/dashboard/dqlobos-projects/stores/blob/store_YRN9zqaG14fpnEk2/guides
 https://vercel.com/guides/nextjs-prisma-postgres
-https://ant.design/components/notification
