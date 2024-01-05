@@ -7,7 +7,7 @@ Running locally:
 1. Install Node v21.5.0 (I just used NVM for this: `nvm install node`)
 2. Set up databases
    - _Fair warning: Since this was a fast turnaround project I didn't spend much time on devops best practices_
-   - You can set up a vercel account [here](https://vercel.com/docs/getting-started-with-vercel)
+   - For development I used the production databases and object storage. Vercel made it too easy. You can set up a vercel account [here](https://vercel.com/docs/getting-started-with-vercel) OR set your database urls however is preferred
    - Then add [blob storage](https://vercel.com/docs/storage/vercel-blob/quickstart) and [database storage](https://vercel.com/docs/storage/vercel-postgres/quickstart). 
    - You can keep your environment in sync really easily with the `vercel env pull` command
 3. Add a ROBOFLOW_API_KEY to your environment for [this model](https://universe.roboflow.com/loboflow-go1lj/climbing-replica-test/model/1)
