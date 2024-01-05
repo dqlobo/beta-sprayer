@@ -2,6 +2,9 @@
 
 _This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app)._
 
+**Live deployment: https://beta-sprayer.vercel.app/**
+This deployment will be live until 1/15. If you need to access this after it has been taken down, please contact davidlobosco[AT]gmail
+
 Running locally:
 
 1. Install Node v21.5.0 (I just used NVM for this: `nvm install node`)
