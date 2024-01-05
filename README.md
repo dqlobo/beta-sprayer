@@ -3,7 +3,7 @@
 _This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app)._
 
 **Live deployment: https://beta-sprayer.vercel.app/**
-This deployment will be live until 1/15. If you need to access this after it has been taken down, please contact davidlobosco[AT]gmail
+This deployment will be live until 2024-01-15. If you need to access this after it has been taken down, please contact davidlobosco[AT]gmail
 
 Running locally:
 
