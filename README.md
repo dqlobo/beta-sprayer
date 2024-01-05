@@ -2,6 +2,19 @@
 
 _This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app)._
 
+Running locally:
+
+1. Install Node v21.5.0 (I just used NVM for this: `nvm install node`)
+2. Set up databases
+   - Since this was a fast turnaround project I used the production database while I was developing locally. If this was a serious project, I would set up a better dev environment.
+   - You can set up a vercel account [here](https://vercel.com/docs/getting-started-with-vercel)
+   - Then add [blob storage](https://vercel.com/docs/storage/vercel-blob/quickstart) and [database storage](https://vercel.com/docs/storage/vercel-postgres/quickstart). 
+   - You can keep your environment in sync really easily with the `vercel env pull` command
+3. Add a ROBOFLOW_API_KEY to your environment for [this model](https://universe.roboflow.com/loboflow-go1lj/climbing-replica-test/model/1)
+4. Run npm run dev
+
+More detailed setup instructions are below under "Getting started with NextJS"
+
 ## Context
 
 Some climbers refer to a route as a "problem" because the different moves you make are pieces to the puzzle that allow you to get to the top. Contrary to popular belief, strength is often not the most important component of climbing successfully, _problem solving is_!
